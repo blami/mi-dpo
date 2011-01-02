@@ -1,0 +1,24 @@
+1/ Facade, Mediator
+   Facade: ATM is facade representing entire ATM (ok)
+   Facade: UI is facade representing entire UI (ok)
+
+2/ Abstract Factory, Factory Method, Singleton
+   Singleton: Application is singleton containing application wide configuration 
+   Abstract Factory: provide different UIs for ATM facade (ATM asks UI facade
+        which asks UIFactory...) (ok)
+
+3/ Adapter, Proxy, Bridge, State, Command
+   State: process (ok)
+   
+4/ Strategy
+   Strategy: strategies to fullfil customers action (whitdraw, balance, 
+        change pin) inside OperationState
+
+5/ Observer
+   Observer: SwingUIScreen is observer subscribed to SwingUIKeyboard. When user
+        clicks in keyboard, it notifies SwingUIScreen with current N to show it
+        on screen. (ok)
+
+6/ Decorator
+   Decorator: Bank is decorated by BankOverdraftDecorator which adds overdraft.
+        (ok)
