@@ -1,0 +1,41 @@
+ <!ELEMENT sproject (course, author, content)>
+  <!ELEMENT course (cname, code, semester, seminar)>
+  <!ELEMENT author (aname, uname, email)>
+  <!ELEMENT content (declaration, title, description,  patterns, conclussions, references)>
+  <!ELEMENT cname (#PCDATA)>
+  <!ELEMENT code (#PCDATA)>
+  <!ELEMENT semester (#PCDATA)>
+  <!ELEMENT seminar (#PCDATA)>
+  <!ELEMENT aname (#PCDATA)>
+  <!ELEMENT uname (#PCDATA)>
+  <!ELEMENT email (#PCDATA)>
+  <!ELEMENT title (#PCDATA)>
+  <!ELEMENT declaration (#PCDATA)>
+  <!ELEMENT description (title, para+)>
+  <!ELEMENT patterns (title, pattern+)>
+  <!ELEMENT pattern (title, context, implementation, advantages+)>
+  <!ELEMENT context (title, description, code+, link+)>
+  <!ELEMENT implementation (title, description, uml+, code+, link+)>
+  <!ELEMENT advantages (title, description)>
+  <!ELEMENT conclussions (title, para+)>
+  <!ELEMENT references (title, para+)>
+  <!ELEMENT uml (title, imagedata)>
+
+<!-- paragraph -->
+<!ELEMENT para (#PCDATA | link)*>
+
+<!-- comment -->
+<!ELEMENT comment (para)*>
+
+<!-- link -->
+<!ELEMENT link (#PCDATA)>
+<!ATTLIST link
+    url CDATA #REQUIRED 
+>
+
+<!-- imagedata -->
+<!ELEMENT img EMPTY>
+<!ATTLIST img
+	url	CDATA	#REQUIRED
+	alt	CDATA	#IMPLIED
+>

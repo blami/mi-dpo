@@ -1,0 +1,571 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>MI-DPO - Monday 16.15 - Ondrej Balaz</title>
+<link rel="stylesheet" type="text/css" href="project.css">
+</head>
+<body>
+<h3 class="course">MI-DPO -            Design Patterns and OOP,            Fall 2010, even week</h3>
+<h3 class="author">Ondrej Balaz ( balazond )          Monday 16.15</h3>
+<h4 class="author"><a href="mailto:balazond@fit.cvut.cz">balazond@fit.cvut.cz</a></h4>
+<p class="declaration">
+    I hereby declare that I have completed this project independently and that
+    I have listed all the literature and publications used
+    </p>
+<h1>ATM - Design Patterns Demo Application</h1>
+<h2>Description</h2>
+<p>
+    This application is very simplifed program model of an automated teller
+    machine (ATM) implemented in Java using various design patterns to
+    demonstrate their benefit and my understanding to these benefits.
+    </p>
+<p>
+    ATM (also known as automated banking machine, ABM) is an networked embedded
+    computer device that provides basic financial transactions to the clients of
+    banking institution. Application emulates very simple ATM that allows client
+    identified by PIN (personal identification number) to check balance and
+    to withdraw or deposit money with optional overdraft.
+    </p>
+<p>
+    Note: PINs for testing are: 1234 or 4321.
+    </p>
+<a name="content"></a><h2>Design patterns</h2>
+<ul>
+<li><a href="#1">Facade</a></li>
+<li><a href="#2">Singleton</a></li>
+<li><a href="#3">Abstract Factory</a></li>
+<li><a href="#4">State</a></li>
+<li><a href="#5">Strategy</a></li>
+<li><a href="#6">Observer</a></li>
+<li><a href="#7">Decorator</a></li>
+</ul>
+<div class="pattern">
+<a name="1"></a><h2>Facade</h2>
+<h3>Context</h3>
+<p>
+            Real world ATM is a very complex system built from many
+            subsystems. My program model is way simpler but still there are
+            subsystems interacting together using simple interfaces.
+            Encapsulating larger bodies of code of these subsystems is what is
+            facade design pattern for. In ATM application I use facade pattern
+            twice as follows.
+            </p>
+<p>
+            First case is encapsulation of entire model into <span class="code">ATM</span>
+            facade containing <span class="code">BankService</span>, <span class="code">UI</span> and
+            <span class="code">Process</span> subsystems. <span class="code">ATM</span> is top-most level class
+            with <span class="code">run()</span> method fired by main class.
+            </p>
+<p>
+            Second case is <span class="code">UI</span> subsystem facade containing various
+            widgets (currently keyboard and screen). Entire UI is communicating
+            with "outer" world only by <span class="code">read()</span> and <span class="code">write()</span>
+            methods, because that is all the other subsystem should use as shown in code
+            below.
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+    ui.write("Hello! Insert number:");
+    int pin = ui.read();
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Facade</h3>
+<p>
+            Implementation of my facade is in both cases typical. There are
+            private fields for objects representing facade subsystems. These
+            objects are instantiated from the facade constructor.
+            </p>
+<p>
+            UI facade constructor takes an additional <span class="code">UIFactory</span>
+            argument to specify which concrete factory will be used to
+            instantiate UI widgets. See abstract factory pattern below.
+            </p>
+<h4>UML diagramy</h4>
+<h4>Codes with Implementation</h4>
+<h5>Implementation Example #1</h5>
+<pre><code>
+public class ATM {
+    private UI ui = null;
+    private BankService bank = null;
+    private Process process = null; 
+
+    /**
+     * Constructs ATM using configuration read from application-wide registry.
+     */
+    public ATM() {
+        // construct UI
+        ui = ...
+
+        // construct BankService
+        bank = ...
+
+        // construct Process
+        process = ...
+    }
+
+    /**
+     * ATM lifecycle method.
+     */
+    public void run() {
+        ui.initialize();
+
+        // do work
+        while(...) {
+            process.script();
+        }
+    }
+}
+        </code></pre>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/ATM.java">ATM.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/UI.java">UI.java</a></li>
+</ul>
+<h3>Advantages of Facade</h3>
+<p>
+            Primary advantage of facade design pattern is improved readability
+            and logical encapsulation of code. Business logic does not need to
+            know internal architecture of subsystem. Methods needed to
+            interface with subsystem will suffice.
+            </p>
+<p>
+            Another benefit of facade is that subsystems and their wiring under
+            the hood can be absolutely changed. This can be used for rapid
+            prototyping of non-critical systems and later refactoring (this
+            assume well-designed facade interface).
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="2"></a><h2>Singleton</h2>
+<h3>Context</h3>
+<p>
+            Singleton design pattern restricts class instantiation to exactly one
+            object and provides static method to obtain reference to this 
+            instance. This is perfect when we need easily accessible object holding
+            global information.
+            </p>
+<p>
+            I made main class <span class="code">Application</span> singleton holding
+            application-wide registry. Each object in ATM can easily get
+            instance of <span class="code">Application</span> class and read or write
+            <span class="code">key:value</span> pairs into registry like in following code listing.
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+Application app = Application.getInstance();
+Object config = app.getValue("config");
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Singleton</h3>
+<p>
+            Application class is a typical singleton with private constructor and
+            static method <span class="code">getInstance()</span> returning same instance
+            (initialized amidst first access and stored in private field
+            <span class="code">instance</span>).
+            </p>
+<p>
+            Singleton is not synchronized and blocks <span class="code">clone()</span> by
+            throwing <span class="code">CloneNotSupportedException</span>.
+            </p>
+<h4>UML diagramy</h4>
+<h4>Codes with Implementation</h4>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul><li><a href="src/cz/cvut/fit/dpo/Application.java">Application.java</a></li></ul>
+<h3>Advantages of Singleton</h3>
+<p>
+            Advantage of singleton over static methods is that singleton is full
+            fledged object that supports inheritance. In this case we can easily
+            move to persistent registry by overloading <span class="code">setValue()</span> and
+            <span class="code">getValue</span> methods in inherited class. If launching mechanism
+            of <span class="code">ATM</span> facade changes in future, we don't need fix two source
+            files as in static methods case.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="3"></a><h2>Abstract Factory</h2>
+<h3>Context</h3>
+<p>
+            In real world ATM maker distributes ATMs to many banks. Every
+            bank has different brand, uses different size of screen or shape
+            of keys. But all screens and keyboards behave same, they only look
+            different. To make my ATM use different user interfaces while using
+            same behavior and business logic I use abstract factory design pattern.
+            Code snippet bellow shows UI widgets initialization (<span class="code">UIScreen</span>,
+            <span class="code">UIKeyboard</span> and <span class="code">UIFactory</span> are interfaces).
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+public class UI {
+    private UIScreen screen;    
+    private UIKeyboard keyboard;
+    
+    /**
+     * Construct UI using given UIFactory.
+     * @param factory   concrete UIFactory 
+     */
+    public UI(UIFactory factory) {
+        screen = factory.createScreen();
+        keyboard = factory.createKeyboard();
+    }
+
+    ...
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Abstract Factory</h3>
+<p>
+            My implementation of abstract factory works
+            as follows. Both console and Swing user interfaces are unified by
+            the <span class="code">UIFactory</span> interface (code example #1). They produce same sets of
+            widget products that are also implementing the same base interfaces
+            <span class="code">UIKeyboard</span> (code example #2) and <span class="code">UIScreen</span>.
+            </p>
+<p>
+            Concrete factory that will be used depends on command line
+            argument. To start application using <span class="code">SwingUIFactory</span> use
+            <span class="code">swing</span> argument. For <span class="code">ConsoleUIFactory</span> use
+            <span class="code">console</span> argument instead.
+            </p>
+<h4>UML diagramy</h4>
+<h5>Class diagram</h5>
+<img src="abstractfactory.png" alt="" title=""><h4>Codes with Implementation</h4>
+<h5>Implementation Example #1</h5>
+<pre><code>
+public interface UIFactory {
+    public UIScreen createScreen();
+    public UIKeyboard createKeyboard();
+}
+        </code></pre>
+<h5>Implementation Example #2</h5>
+<pre><code>
+public interface UIKeyboard {
+    
+    /**
+     * Initialize ATM's keyboard object.
+     */
+    public void initialize();
+    
+    /**
+     * Read number from ATM's keyboard.
+     * @return          number read from ATM's keyboard
+     */
+    public int read();
+}
+        </code></pre>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/UIFactory.java">UIFactory.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/UIKeyboard.java">UIKeyboard.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/UIScreen.java">UIScreen.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/console/ConsoleUIFactory.java">ConsoleUIFactory.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/console/ConsoleUIKeyboard.java">ConsoleUIKeyboard.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/console/ConsoleUIScreen.java">ConsoleUIScreen.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIFactory.java">SwingUIFactory.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIKeyboard.java">SwingUIKeyboard.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIScreen.java">SwingUIScreen.java</a></li>
+</ul>
+<h3>Advantages of Abstract Factory</h3>
+<p>
+            Main advantage of a bit more complex abstract factory design
+            pattern is an easy interchangeability of whole sets of products which
+            is typical user interface issue.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="4"></a><h2>State</h2>
+<h3>Context</h3>
+<p>
+            When client uses ATM, he/she goes through many states of ATM process
+            diagram (e.g. entering pin, navigating in menu, withdrawing money).
+            I simplified this process down to four states and implemented it using
+            state design pattern.
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+process.setState(new LoginState());
+process.script();
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of State</h3>
+<p>
+            State pattern implementation in ATM is divided to <span class="code">Process</span>
+            class that does state switching and execution of current state.
+            States are classes (<span class="code">LoginState</span>, <span class="code">MenuState</span>,
+            <span class="code">OperationState</span> and <span class="code">LogoutState</span>) implementing
+            <span class="code">ProcessState</span> interface. Each state has <span class="code">script()</span>
+            method that manipulates screen and keyborad in order to determine
+            next state. Snippet of code bellow shows typical <span class="code">script()</span>
+            body taken from <span class="code">LoginState</span> class.
+            </p>
+<h4>UML diagramy</h4>
+<h5>Class diagram</h5>
+<img src="state.png" alt="" title=""><h4>Codes with Implementation</h4>
+<h5>Implementation Example #1</h5>
+<pre><code>
+UI ui = context.getUI();
+BankService bank = context.getBankService();
+
+int pin;
+
+// display PIN request
+ui.write("Wellcome in " + bank.getName() + "\n\n"
+    + "ENTER PIN:");
+pin = ui.read();
+
+// verify PIN
+if(bank.authorize(pin)) {
+    context.setState(new MenuState(pin));
+} else { 
+    context.setState(new LogoutState("ERROR: Invalid PIN!"));
+}
+        </code></pre>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/Process.java">Process.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/ProcessState.java">ProcessState.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/state/LoginState.java">LoginState.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/state/MenuState.java">MenuState.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/state/OperationState.java">OperationState.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/state/LogoutState.java">LogoutState.java</a></li>
+</ul>
+<h3>Advantages of State</h3>
+<p>
+            State design pattern makes process-scenario code readable and
+            organized. It is very easy extend process with new states. Combined
+            with additional patterns like abstract factory (see above) could be made
+            fully interchangeable.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="5"></a><h2>Strategy</h2>
+<h3>Context</h3>
+<p>
+            Nowadays, ATMs are very smart devices. They don't offer only
+            money withdrawal but also can send money to another account,
+            pay bills or pre-pay your cell phone. What have all these
+            operations in common? You're always spending your money. I simplified
+            situation for my model. There are only two operations - withdraw and 
+            deposit money. They are both handled as two interchangeable algorithms 
+            in strategy design pattern.
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+        operation.setStrategy(new DepositStrategy());
+        operation.execute(...);
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Strategy</h3>
+<p>
+            When user enters menu choices for withdraw or deposit money,
+            <span class="code">Operation</span> object is configured with proper strategy object
+            (<span class="code">WithdrawStrategy</span> or <span class="code">DepositStrategy</span>) and given
+            to <span class="code">OperationState</span> which handles both operations in one
+            state (see above).
+            </p>
+<p>
+            Different strategies are objects that implement
+            <span class="code">OperationStrategy</span> interface containing important
+            <span class="code">execute()</span> method and few helper methods for
+            <span class="code">OperationState</span> (e.g. method returning title
+            shown on ATM's screen when using this strategy).
+            </p>
+<h4>UML diagramy</h4>
+<h5>Class diagram</h5>
+<img src="strategy.png" alt="" title=""><h4>Codes with Implementation</h4>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/Operation.java">Operation.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/OperationStrategy.java">OperationStrategy.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/strategy/DepositStrategy.java">DepositStrategy.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/process/strategy/WithdrawStrategy.java">WithdrawStrategy.java</a></li>
+</ul>
+<h3>Advantages of Strategy</h3>
+<p>
+            Indetifying operations having same goal that can be reached
+            in different ways and using strategy pattern to implement them makes
+            resulting code more modular and configurable runtime.
+            </p>
+<p>
+            My use of strategy pattern is bumpy because I simplified use case
+            too much. To enlight, my idea was that withdraw and deposit are
+            same thing with different sign.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="6"></a><h2>Observer</h2>
+<h3>Context</h3>
+<p>
+            In real world ATM, when you input something using keyboard most
+            likely you see your input on screen. In ATM application this was
+            very easy with console user interface (most terminal emulators
+            will handle this). When I added Swing interface this was serious
+            issue. Both keyboard and screen are independent objects driven
+            by <span class="code">UI</span> facade, not knowing each other. To adhere with
+            clean abstract factory interface I needed to solve this issue at
+            SwingUI level so I've used observer pattern to subscribe observers
+            of keyboard widget which notifies them every time when key is 
+            pressed. Subscription is made by <span class="code">SwingUIFactory</span>.
+            </p>
+<h4>Codes with usage</h4>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Observer</h3>
+<p>
+            <span class="code">SwingUIKeyboard</span> acts as subject providing interface to
+            subscribe and unsubscribe to. Every time is on keyboard pressed
+            button, all subscribers are notified by invoking their
+            <span class="code">poke()</span> method with complete input buffer given as
+            argument. This method is only method defined by
+            <span class="code">SwingUIKeyboardObserver</span> interface that must be implemented
+            by every object that wants to receive notifications.
+            </p>
+<h4>UML diagramy</h4>
+<h4>Codes with Implementation</h4>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIObserver.java">SwingUIObserver.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIKeyboard.java">SwingUIKeyboard.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIScreen.java">SwingUIScreen.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/ui/swing/SwingUIFactory.java">SwingUIFactory.java</a></li>
+</ul>
+<h3>Advantages of Observer</h3>
+<p>
+            Using observer design pattern I was able to keep light interface of
+            UI and solve described issue in proper place without hacking into
+            other than SwingUI components.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<div class="pattern">
+<a name="7"></a><h2>Decorator</h2>
+<h3>Context</h3>
+<p>
+            Behind every ATM is a bank providing remote service to authenticate
+            user, check balance or authorize withdraw. When bank introduces new
+            product it should be integrated to this remote service in a way
+            that does not break ATM software asking original service without
+            this product. In my model I used decorator design pattern to
+            decorate basic account with overdraft option.
+            </p>
+<p>
+            To run program with overdraft decorator add <span class="code">overdraft</span>
+            argument to command line.
+            </p>
+<h4>Codes with usage</h4>
+<h5>Usage Example #1</h5>
+<pre><code>
+// construct BankService
+bank = new Bank();
+// check if overdraft should be available
+if(...){
+    bank = new BankOverdraftDecorator(bank);
+}
+        </code></pre>
+<h4>Links to the Source code, where the pattern is used</h4>
+<ul></ul>
+<h3>Implementation of Decorator</h3>
+<p>
+            Both simple <span class="code">Bank</span> and <span class="code">BankOverdraftDecorator</span>
+            implement <span class="code">BankService</span> interface representing remote
+            service discussed above. <span class="code">BankOverdraftDecorator</span> is
+            inherited from <span class="code">BankAbstractDecorator</span> which is a basic
+            skeleton for decorator able to swallow object implementing
+            <span class="code">BankService</span>. Despite the fact that this skeleton class is
+            abstract, all methods are implemented as passthrough (asi illustrated on code example bellow) to swallowed
+            object so descendant concrete decorator only needs to overload
+            methods that affects.
+            </p>
+<h4>UML diagramy</h4>
+<h4>Codes with Implementation</h4>
+<h5>Implementation Example #1</h5>
+<pre><code>
+/* (non-Javadoc)
+ * @see cz.cvut.fit.dpo.atm.bank.BankService#getDetailedBalance(int)
+ */
+@Override
+public String getDetailedBalance(int pin) {
+    return decoratedBank.getDetailedBalance(pin);
+}   
+
+/* (non-Javadoc)
+ * @see cz.cvut.fit.dpo.atm.bank.BankService#withdraw(int, int)
+ */
+@Override
+public int withdraw(int pin, int amount) {
+    return decoratedBank.withdraw(pin, amount);
+}
+
+/* (non-Javadoc)
+ * @see cz.cvut.fit.dpo.atm.bank.BankService#deposit(int, int)
+ */
+@Override
+public int deposit(int pin, int amount) {
+    return decoratedBank.deposit(pin, amount);
+}
+        </code></pre>
+<h4>Links to the Source code, where the pattern is implemented</h4>
+<ul>
+<li><a href="src/cz/cvut/fit/dpo/atm/bank/BankService.java">BankService.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/bank/BankAbstractDecorator.java">BankAbstractDecorator.java</a></li>
+<li><a href="src/cz/cvut/fit/dpo/atm/bank/BankOverdraftDecorator.java">BankOverdraftDecorator.java</a></li>
+</ul>
+<h3>Advantages of Decorator</h3>
+<p>
+            Decorator pattern allows to add new features to simple objects while
+            keeping their original interface. For the sake of keeping same interface
+            decorators can be pilled infinitely. Thanks to decorator I was able to
+            create extended service based on original <span class="code">Bank</span> without 
+            changes in business logic.
+            </p>
+<div class="right"><a href="#content">Go to the pattern list</a></div>
+</div>
+<h2>Conclussion</h2>
+<p>
+        I found out that the use of design patterns may look like overhead but
+        it may be healthy even in small projects. Use of design patterns may
+        split one simple class to three files but this change may save day or
+        month of work when customer yields for new feature. It is important to
+        have good sense in design phase. Many times I've used pattern A that
+        was good for use with B but when I tried to implement them later with C
+        my design failed.
+        </p>
+<p>
+        Although lectures were very dissapointing and boring since the
+        beginning (in my humble opinion they were cited parts from Erich
+        Gamma's book which I've bought during semester so I died out) I liked
+        MI-DPO seminars during semester. Mr. Kurs demonstrated almost every
+        single design pattern on real world example which is best way to
+        understand for me. He was also very helpfull and open to argue.
+        </p>
+<p>
+        Thing I hate about MI-DPO most is this project. For someone who doesn't
+        use design patterns every day is very difficult to see six of them in
+        detail working together so I started again and again (yes I know I can
+        commit more smaller demos using less patterns, but use them in one
+        application was more challenging). That's reason why I'm commiting that
+        late. It would be way better to have prepared scenarios to use 2-3
+        patterns to solve some situation or better to refactor existing code
+        using design patterns. Or at least to give to students mock ideas to
+        implement using design patterns.
+        </p>
+<h2>References</h2>
+<p>[1] Design Patterns: Elements of Reusable Object-Oriented Software, Erich Gamma, AddisonWesley, ISBN 0-201-63361-2</p>
+<p>[2] Software Design Patterns [online], http://c2.com/cgi/wiki?SoftwareDesignPatternsIndex</p>
+<p>[3] Design Patterns [online], http://www.oodesign.com/</p>
+<p>[4] Design Pattern (computer science) [online], http://en.wikipedia.org/wiki/Design_pattern_(computer_science)</p>
+</body>
+</html>
